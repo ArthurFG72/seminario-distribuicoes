@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Cassino Gauss</title>
+<style>
+:root{
+  --felt:#0b3d2e;--felt2:#072a20;--felt3:#05201a;
+  --gold:#f5c542;--gold2:#b8860b;--goldtxt:#ffe9a8;
+  --ivory:#fbf4e4;--mut:#9fc4b2;
+  --ruby:#c0262d;--ok:#5ee08a;--bad:#ff6b6b;--blue:#7cc4ff;
+  --serif:Georgia,"Times New Roman",serif;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;font-family:system-ui,"Segoe UI",Arial,sans-serif;color:var(--ivory);line-height:1.5;
+  background:
+   radial-gradient(1200px 600px at 50% -10%,#14634b 0,transparent 60%),
+   repeating-linear-gradient(45deg,rgba(255,255,255,.015) 0 2px,transparent 2px 5px),
+   var(--felt3);
+  min-height:100vh}
+/* ---------- letreiro ---------- */
+header{position:relative;text-align:center;padding:22px 16px 18px;background:linear-gradient(#1a0b0b,#2c0f10);border-bottom:4px solid var(--gold);box-shadow:0 8px 30px rgba(0,0,0,.6)}
+header::before,header::after{content:"";position:absolute;left:0;right:0;height:10px;
+  background:radial-gradient(circle,var(--gold) 0 3px,transparent 4px) 0 50%/22px 10px repeat-x;filter:drop-shadow(0 0 4px var(--gold))}
+header::before{top:6px;animation:bulbs 1.2s steps(1) infinite}
+header::after{bottom:6px;animation:bulbs 1.2s steps(1) infinite reverse}
+@keyframes bulbs{0%{opacity:1}50%{opacity:.25}}
+h1{margin:6px 0 0;font-family:var(--serif);font-size:clamp(1.8rem,6vw,2.8rem);letter-spacing:.12em;text-transform:uppercase;
+  background:linear-gradient(#fff2b8,var(--gold) 45%,var(--gold2));-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 2px 0 #5b3a00) drop-shadow(0 0 14px rgba(245,197,66,.45))}
+.sub{font-family:var(--serif);font-style:italic;color:var(--goldtxt);opacity:.85;letter-spacing:.2em;font-size:.8rem;margin-top:2px}
+main{max-width:920px;margin:0 auto;padding:18px 14px 30px}
+/* ---------- painéis ---------- */
+.panel{position:relative;border-radius:18px;padding:18px;margin-bottom:16px;
+  background:linear-gradient(160deg,var(--felt),var(--felt2));
+  border:2px solid var(--gold2);
+  box-shadow:inset 0 0 0 4px var(--felt2),inset 0 0 0 5px rgba(245,197,66,.35),0 14px 30px rgba(0,0,0,.55)}
+h2{margin:0 0 6px;font-family:var(--serif);font-size:1.5rem;color:var(--goldtxt);text-shadow:0 2px 0 rgba(0,0,0,.5)}
+h2 small{font-size:.8rem;color:var(--mut);font-style:italic;letter-spacing:.06em}
+.story{color:var(--mut)}
+.f{font-family:Cambria,Georgia,serif;font-style:italic;background:rgba(0,0,0,.35);padding:1px 7px;border-radius:5px;color:var(--goldtxt);border:1px solid rgba(245,197,66,.25)}
+/* ---------- banca ---------- */
+.hud{display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}
+.bankbox{position:relative;display:flex;align-items:center;gap:12px}
+.led{font-family:"Courier New",monospace;font-weight:700;font-size:2rem;letter-spacing:.06em;color:#ffd75e;
+  background:#120905;border:2px solid var(--gold2);border-radius:10px;padding:2px 16px;min-width:130px;text-align:right;
+  text-shadow:0 0 10px rgba(255,200,60,.8);box-shadow:inset 0 3px 10px #000}
+.led.dn{color:#ff8a8a;text-shadow:0 0 10px rgba(255,90,90,.8)}
+.lbl{font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--mut)}
+.pop{position:absolute;right:8px;top:-6px;font-weight:800;font-size:1.3rem;pointer-events:none;text-shadow:0 2px 6px #000}
+/* ---------- botões ---------- */
+button{font:inherit}
+button.b{cursor:pointer;border:0;border-radius:12px;padding:11px 20px;font-weight:800;letter-spacing:.04em;color:#2a1800;
+  background:linear-gradient(#ffe27a,var(--gold) 55%,#c98f12);
+  box-shadow:0 4px 0 #7a5200,0 8px 16px rgba(0,0,0,.45),inset 0 1px 0 rgba(255,255,255,.6);
+  transition:transform .12s,box-shadow .12s,filter .12s}
+button.b:hover:not(:disabled){transform:translateY(-2px);filter:brightness(1.08)}
+button.b:active:not(:disabled){transform:translateY(3px);box-shadow:0 1px 0 #7a5200,0 3px 8px rgba(0,0,0,.45)}
+button.b:disabled{opacity:.4;cursor:not-allowed;filter:grayscale(.6)}
+button.b.alt{color:var(--goldtxt);background:linear-gradient(#124d3b,#0a3326);box-shadow:0 4px 0 #04150f,0 8px 16px rgba(0,0,0,.4),inset 0 0 0 1px rgba(245,197,66,.4)}
+button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+/* ---------- fichas ---------- */
+.rack{display:flex;gap:14px;flex-wrap:wrap;align-items:center;margin-top:10px;padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.28);box-shadow:inset 0 4px 12px #000}
+.chip{--c:#c0262d;width:62px;height:62px;border-radius:50%;border:0;cursor:pointer;position:relative;color:#fff;font-weight:800;font-size:1.05rem;
+  text-shadow:0 1px 2px #000;
+  background:radial-gradient(closest-side,var(--c) 0 56%,#fff 57% 60%,var(--c) 61% 70%,transparent 71%),
+             repeating-conic-gradient(#fff 0 14deg,var(--c) 14deg 30deg);
+  box-shadow:0 5px 0 rgba(0,0,0,.55),0 10px 16px rgba(0,0,0,.5);
+  transition:transform .18s cubic-bezier(.3,1.6,.5,1),box-shadow .18s}
+.chip:hover{transform:translateY(-4px)}
+.chip.sel{transform:translateY(-9px) scale(1.1);box-shadow:0 12px 0 rgba(0,0,0,.35),0 0 0 3px var(--gold),0 0 22px 4px rgba(245,197,66,.7)}
+.c10{--c:#1d4ed8}.c50{--c:#c0262d}.c100{--c:#16181d}.c200{--c:#7e22ce}
+/* ---------- abas ---------- */
+nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+nav button{cursor:pointer;color:var(--goldtxt);font-family:var(--serif);font-size:1rem;padding:10px 18px;border-radius:999px;
+  background:rgba(0,0,0,.35);border:1px solid rgba(245,197,66,.4);transition:all .2s}
+nav button:hover{background:rgba(245,197,66,.15)}
+nav button.on{color:#2a1800;background:linear-gradient(#ffe27a,var(--gold));border-color:var(--gold);box-shadow:0 0 18px rgba(245,197,66,.6);font-weight:700}
+/* ---------- elementos de jogo ---------- */
+canvas{width:100%;display:block;border-radius:12px;background:radial-gradient(circle at 50% 40%,#0c4a38,#061f18);box-shadow:inset 0 0 0 2px rgba(245,197,66,.35),inset 0 6px 22px rgba(0,0,0,.6)}
+label{display:block;margin-top:10px;color:var(--mut);font-size:.95rem}
+label b{color:var(--goldtxt)}
+input[type=range]{width:100%;height:28px;-webkit-appearance:none;appearance:none;background:transparent}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:6px;background:linear-gradient(90deg,#052e22,#0e6b4f);box-shadow:inset 0 2px 4px #000}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:26px;height:26px;margin-top:-9px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff3b0,var(--gold) 60%,#a77408);border:2px solid #5b3a00;box-shadow:0 3px 6px rgba(0,0,0,.6)}
+input[type=range]::-moz-range-track{height:8px;border-radius:6px;background:#0e6b4f}
+input[type=range]::-moz-range-thumb{width:22px;height:22px;border-radius:50%;background:var(--gold);border:2px solid #5b3a00}
+.row{display:flex;gap:12px;flex-wrap:wrap;align-items:center;margin-top:14px}
+.box{background:rgba(0,0,0,.32);border-left:4px solid var(--gold);border-radius:10px;padding:11px 15px;margin-top:12px}
+.lesson{border-color:var(--blue)}
+.ok{color:var(--ok);font-weight:800}.no{color:var(--bad);font-weight:800}
+.big{font-family:var(--serif);font-size:1.7rem;font-weight:800}
+.result{animation:rise .35s cubic-bezier(.2,1.4,.4,1)}
+@keyframes rise{from{opacity:0;transform:translateY(10px) scale(.96)}}
+.led2{font-family:"Courier New",monospace;font-size:1.6rem;font-weight:700;text-align:center;color:#ff7b6b;text-shadow:0 0 10px rgba(255,80,60,.8);background:#120905;border:2px solid #4a1a14;border-radius:10px;padding:6px;margin-top:10px;box-shadow:inset 0 3px 10px #000}
+.bombwrap{display:flex;align-items:center;gap:14px;margin-top:10px}
+#bm{font-size:3.2rem;line-height:1;filter:drop-shadow(0 6px 8px #000)}
+#bm.tick{animation:wob .25s ease-in-out infinite}
+@keyframes wob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) scale(1.06)}}
+.fuse{flex:1;height:14px;border-radius:8px;background:#120905;border:1px solid #5b3a00;overflow:hidden;box-shadow:inset 0 2px 6px #000}
+#fb{height:100%;width:0;background:linear-gradient(90deg,#ffe27a,#ff8a3d,#ff3d3d);transform-origin:left;transition:width .06s linear}
+.warn{font-size:.8rem;color:var(--mut);text-align:center;padding:10px}
+.coin{position:fixed;z-index:50;pointer-events:none;font-size:1.6rem;will-change:transform,opacity}
+@media (prefers-reduced-motion:reduce){header::before,header::after,#bm.tick{animation:none}*{transition:none!important}}
+</style>
+</head>
+<body>
+<header><h1>🎰 Cassino Gauss</h1><div class="sub">— onde a casa sempre ganha (e a estatística explica por quê) —</div></header>
+<main>
+  <nav id="nav"></nav>
+  <div class="panel">
+    <div class="hud">
+      <div><div class="lbl">Sua banca</div><div class="bankbox"><div class="led" id="bank">1000</div><span id="popwrap"></span></div></div>
+      <div><div class="lbl">Fichas fictícias</div><button class="b alt" id="reset">↺ Recomeçar</button></div>
+    </div>
+    <div class="lbl" style="margin-top:14px">Escolha a ficha da aposta</div>
+    <div class="rack" id="chips"></div>
+  </div>
+  <div id="game"></div>
+  <div class="panel"><h2>📈 Evolução da banca</h2><canvas id="cb" style="height:150px"></canvas></div>
+  <p class="warn">Jogo educativo com fichas fictícias. Em cassino de verdade a casa sempre tem vantagem, e este jogo mostra a matemática disso.</p>
+</main>
+<script>
+const $ = id => document.getElementById(id);
+const RM = matchMedia('(prefers-reduced-motion: reduce)').matches;
+const erf = x => { const s = Math.sign(x); x = Math.abs(x); const t = 1/(1+.3275911*x);
+  return s*(1-(((((1.061405429*t-1.453152027)*t)+1.421413741)*t-.284496736)*t+.254829592)*t*Math.exp(-x*x)); };
+const pc = p => (p*100).toFixed(1).replace('.', ',')+'%';
+const nf = (x, d = 2) => x.toFixed(d).replace('.', ',');
+const fm = x => (x >= 0 ? '+' : '−')+Math.abs(Math.round(x));
+const E = l => -Math.log(1-Math.random())/l;
+
+let bal = 1000, hist = [1000], bet = 50, cur = 0, busy = false, timer = null, shown = 1000, upd = null;
+const stopT = () => { clearInterval(timer); timer = null; busy = false; };
+
+// ---------- efeitos ----------
+function setBank(v) {
+  const from = shown, t0 = performance.now(), el = $('bank');
+  el.classList.toggle('dn', v < 1000);
+  if (RM || document.hidden || from === v) { shown = v; el.textContent = v; return; }
+  (function s(t) { const k = Math.min(1, (t-t0)/700), e = 1-(1-k)**3; shown = Math.round(from+(v-from)*e); el.textContent = shown; if (k < 1) requestAnimationFrame(s); else { shown = v; el.textContent = v; } })(t0);
+}
+function pop(amount) {
+  if (RM) return;
+  const s = document.createElement('span'); s.className = 'pop'; s.textContent = fm(amount); s.style.color = amount >= 0 ? '#5ee08a' : '#ff6b6b';
+  $('popwrap').appendChild(s);
+  s.animate([{ transform: 'translateY(0)', opacity: 1 }, { transform: 'translateY(-46px)', opacity: 0 }], { duration: 1100, easing: 'ease-out' }).onfinish = () => s.remove();
+}
+function coins(n = 26) {
+  if (RM) return;
+  const r = $('game').getBoundingClientRect(), cx = r.left+r.width/2, cy = Math.min(Math.max(r.top+r.height*.35, 120), innerHeight-120);
+  for (let i = 0; i < n; i++) {
+    const s = document.createElement('span'); s.className = 'coin'; s.textContent = '🪙'; s.style.left = cx+'px'; s.style.top = cy+'px'; document.body.appendChild(s);
+    const dx = (Math.random()-.5)*520, up = 120+Math.random()*180, down = 260+Math.random()*160, rot = (Math.random()-.5)*720;
+    s.animate([{ transform: 'translate(0,0) rotate(0)', opacity: 1 }, { transform: `translate(${dx*.6}px,${-up}px) rotate(${rot*.5}deg)`, opacity: 1, offset: .4 }, { transform: `translate(${dx}px,${down}px) rotate(${rot}deg)`, opacity: 0 }], { duration: 1100+Math.random()*500, easing: 'cubic-bezier(.3,.4,.6,1)' }).onfinish = () => s.remove();
+  }
+}
+function fx(win) {
+  const el = $('game').firstElementChild; if (!el || RM) return;
+  if (win) { el.animate([{ boxShadow: '0 0 0 0 rgba(94,224,138,0)' }, { boxShadow: '0 0 60px 8px rgba(94,224,138,.75)' }, { boxShadow: '0 0 0 0 rgba(94,224,138,0)' }], { duration: 1000 }); coins(); }
+  else el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-9px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(-5px)' }, { transform: 'translateX(0)' }], { duration: 380 });
+}
+function settle(p) { bal = Math.round(bal+p); hist.push(bal); setBank(bal); pop(p); fx(p > 0); ui(); }
+
+// ---------- banca (gráfico) ----------
+function ui() {
+  const cv = $('cb'), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = 150; if (W) { cv.width = W*dpr; cv.height = H*dpr;
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const mx = Math.max(1100, ...hist), mn = Math.min(0, ...hist), Y = v => 12+(H-30)*(1-(v-mn)/(mx-mn)), X = i => 10+(W-20)*i/Math.max(hist.length-1, 1);
+  c.strokeStyle = 'rgba(245,197,66,.5)'; c.setLineDash([5, 5]); c.beginPath(); c.moveTo(0, Y(1000)); c.lineTo(W, Y(1000)); c.stroke(); c.setLineDash([]);
+  const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(245,197,66,.35)'); g.addColorStop(1, 'rgba(245,197,66,0)');
+  c.beginPath(); hist.forEach((v, i) => i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v))); c.lineTo(X(hist.length-1), H); c.lineTo(X(0), H); c.fillStyle = g; c.fill();
+  c.beginPath(); c.strokeStyle = '#f5c542'; c.lineWidth = 2.5; c.lineJoin = 'round'; hist.forEach((v, i) => i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v))); c.stroke();
+  c.fillStyle = '#9fc4b2'; c.font = '11px system-ui'; c.fillText('1000 (início)', 10, Y(1000)-5); }
+  document.querySelectorAll('.play').forEach(b => b.disabled = busy || bal < bet);
+}
+$('chips').innerHTML = [10, 50, 100, 200].map(v => `<button class="chip c${v} ${v === bet ? 'sel' : ''}" data-v="${v}" aria-label="Ficha de ${v}">${v}</button>`).join('');
+$('chips').onclick = e => { const v = +e.target.dataset.v; if (!v) return; bet = v; document.querySelectorAll('.chip').forEach(c => c.classList.toggle('sel', +c.dataset.v === v)); ui(); upd && upd(); };
+$('reset').onclick = () => { stopT(); bal = 1000; hist = [1000]; setBank(1000); go(cur); };
+
+// ---------- lei dos grandes números ----------
+function conv(cv, vals, ev) {
+  const dpr = devicePixelRatio || 1, W = cv.clientWidth, H = 180; cv.width = W*dpr; cv.height = H*dpr;
+  const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+  const avg = []; let s = 0; vals.forEach((v, i) => { s += v; avg.push(s/(i+1)); });
+  const mn = Math.min(-1, ...avg), mx = Math.max(1, ...avg), Y = v => 22+(H-36)*(1-(v-mn)/(mx-mn)), X = i => 10+(W-20)*i/(vals.length-1);
+  c.strokeStyle = 'rgba(255,255,255,.25)'; c.beginPath(); c.moveTo(0, Y(0)); c.lineTo(W, Y(0)); c.stroke();
+  c.strokeStyle = '#5ee08a'; c.setLineDash([6, 5]); c.lineWidth = 1.5; c.beginPath(); c.moveTo(0, Y(ev)); c.lineTo(W, Y(ev)); c.stroke(); c.setLineDash([]);
+  c.beginPath(); c.strokeStyle = '#f5c542'; c.lineWidth = 2.5; avg.forEach((v, i) => i ? c.lineTo(X(i), Y(v)) : c.moveTo(X(i), Y(v))); c.stroke();
+  c.fillStyle = '#9fc4b2'; c.font = '11px system-ui'; c.fillText('média por ficha apostada (linha verde = valor esperado)', 10, 14);
+  return avg[avg.length-1];
+}
+const simBlock = () => `<div class="row"><button class="b alt play" id="sim">🔁 Simular 2000 apostas rápidas</button></div><canvas id="cs" style="margin-top:10px;display:none;height:180px"></canvas><div id="so"></div>`;
+function runSim(unit, ev) {
+  const vals = Array.from({ length: 2000 }, unit); $('cs').style.display = 'block';
+  const last = conv($('cs'), vals, ev);
+  $('so').innerHTML = `<div class="box lesson result">Em 2000 apostas, o retorno médio por ficha foi <b>${nf(last, 3)}</b>. O valor esperado é <b>${nf(ev, 3)}</b>. Com poucas rodadas dá para ter sorte, mas quanto mais joga, mais a média <b>converge</b> para o valor esperado (negativo!). É a Lei dos Grandes Números: a casa lucra no volume.</div>`;
+}
+const outcome = (win, prof, extra) => `<div class="box result"><span class="big ${win ? 'ok' : 'no'}">${win ? '🏆 GANHOU' : 'Perdeu'} ${fm(prof)}</span> · ${extra}</div>`;
+
+// ---------- JOGO 1: ROLETA (UNIFORME) ----------
+function G1() {
+  let S = 0, Wd = 60, ang = null;
+  $('game').innerHTML = `<div class="panel"><h2>🎡 Roleta Contínua <small>Uniforme</small></h2>
+  <p class="story">A bolinha para em qualquer ângulo de 0° a 360°, todos igualmente prováveis: <span class="f">θ ~ U(0, 360)</span>. Você escolhe um <b>arco</b> para apostar. Probabilidade = largura ÷ 360. Arco menor, prêmio maior.</p>
+  <canvas id="c1" style="height:340px"></canvas>
+  <label>Início do arco: <b id="vs"></b>°<input type="range" id="s1" min="0" max="359" value="0"></label>
+  <label>Largura do arco: <b id="vw"></b>°<input type="range" id="w1" min="10" max="180" value="60"></label>
+  <div class="box" id="i1"></div>
+  <div class="row"><button class="b play" id="sp1">🎲 GIRAR</button></div><div id="r1"></div>
+  ${simBlock()}</div>`;
+  const inArc = a => ((a-S)%360+360)%360 <= Wd;
+  const draw = b => {
+    const cv = $('c1'), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = 340; if (!W) return; cv.width = W*dpr; cv.height = H*dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const cx = W/2, cy = H/2, rad = a => (a-90)*Math.PI/180;
+    const ring = (r0, r1, a0, a1, fill) => { c.beginPath(); c.arc(cx, cy, r1, a0, a1); c.arc(cx, cy, r0, a1, a0, true); c.closePath(); c.fillStyle = fill; c.fill(); };
+    let g = c.createRadialGradient(cx, cy, 120, cx, cy, 150); g.addColorStop(0, '#6b3a12'); g.addColorStop(1, '#2d1606'); ring(0, 150, 0, 7, g);
+    g = c.createLinearGradient(cx-140, cy-140, cx+140, cy+140); g.addColorStop(0, '#fff0a8'); g.addColorStop(.5, '#c9971c'); g.addColorStop(1, '#7a5200'); ring(134, 142, 0, 7, g);
+    ring(112, 134, 0, 7, '#061f18');
+    if (Wd > 0) { c.save(); c.shadowColor = '#5ee08a'; c.shadowBlur = 16; ring(114, 132, rad(S), rad(S+Wd), '#3ddc84'); c.restore(); }
+    for (let i = 0; i < 36; i++) ring(76, 110, rad(i*10), rad(i*10+10)-.01, i%2 ? '#15171c' : '#b3202a');
+    g = c.createRadialGradient(cx, cy, 5, cx, cy, 74); g.addColorStop(0, '#fff0a8'); g.addColorStop(.35, '#d9a521'); g.addColorStop(1, '#5c3d00'); ring(0, 74, 0, 7, g);
+    ring(0, 56, 0, 7, '#0c3a2c');
+    c.font = '11px system-ui'; c.fillStyle = '#ffe9a8'; c.textAlign = 'center';
+    [0, 90, 180, 270].forEach(a => c.fillText(a+'°', cx+(158)*Math.cos(rad(a)), cy+(158)*Math.sin(rad(a))+4));
+    c.fillStyle = '#ffe9a8'; c.font = '700 22px Georgia'; c.fillText(b === null ? '—' : Math.round(b)%360+'°', cx, cy+8);
+    if (b !== null) { const bx = cx+93*Math.cos(rad(b)), by = cy+93*Math.sin(rad(b)); c.save(); c.shadowColor = 'rgba(0,0,0,.7)'; c.shadowBlur = 8; c.shadowOffsetY = 4; const gb = c.createRadialGradient(bx-3, by-3, 1, bx, by, 9); gb.addColorStop(0, '#fff'); gb.addColorStop(1, '#bbb'); c.beginPath(); c.arc(bx, by, 9, 0, 7); c.fillStyle = gb; c.fill(); c.restore(); }
+  };
+  const info = () => {
+    S = +$('s1').value; Wd = +$('w1').value; $('vs').textContent = S; $('vw').textContent = Wd;
+    const p = Wd/360, odds = .95/p;
+    $('i1').innerHTML = `P(ganhar) = ${Wd}/360 = <b>${pc(p)}</b> · Prêmio: <b>${nf(odds)}×</b> a aposta (lucro de ${fm(bet*(odds-1))} fichas) · Valor esperado por ficha: <span class="no">${nf(.95-1, 2)}</span> (a casa fica com 5%)`;
+    draw(ang);
+  };
+  upd = info; $('s1').oninput = $('w1').oninput = info; info();
+  $('sp1').onclick = () => {
+    busy = true; ui(); $('r1').innerHTML = ''; const fin = Math.random()*360, from = ang ?? 0, to = fin+1080; let f = 0; const N = RM ? 1 : 110;
+    timer = setInterval(() => {
+      f++; const k = f/N, t = 1-(1-k)**4, bounce = k > .93 && k < 1 ? Math.sin((k-.93)/.07*Math.PI)*3 : 0; ang = (from+(to-from)*t+bounce)%360; draw(ang);
+      if (f < N) return; stopT(); ang = fin; draw(ang);
+      const win = inArc(fin), p = Wd/360, prof = win ? bet*(.95/p-1) : -bet; settle(prof);
+      $('r1').innerHTML = outcome(win, prof, `caiu em ${nf(fin, 1)}°`); ui();
+    }, 20);
+  };
+  $('sim').onclick = () => runSim(() => Math.random()*360 <= Wd ? .95/(Wd/360)-1 : -1, -.05);
+}
+
+// ---------- JOGO 2: BOMBA (EXPONENCIAL) ----------
+function G2() {
+  $('game').innerHTML = `<div class="panel"><h2>💣 Bomba-Relógio <small>Exponencial</small></h2>
+  <p class="story">Uma bomba explode após um tempo aleatório <span class="f">X ~ Exp(média 10 s)</span>. Você escolhe o instante <b>t</b> em que “saca” a aposta. Se a bomba ainda não explodiu, você ganha; se explodiu antes, perde. Quanto mais espera, <b>maior o prêmio</b>: <span class="f">1 + 0,1·t</span> vezes a aposta.</p>
+  <canvas id="c2" style="height:230px"></canvas>
+  <label>Sacar no instante t = <b id="vt"></b> s<input type="range" id="t2" min="0.5" max="30" step="0.5" value="5"></label>
+  <div class="box" id="i2"></div>
+  <div class="row"><button class="b play" id="sp2">💥 ARMAR A BOMBA</button></div>
+  <div class="bombwrap"><div id="bm">💣</div><div class="fuse"><div id="fb"></div></div></div>
+  <div class="led2" id="tm">⏱ 0,0 s</div><div id="r2"></div>
+  ${simBlock()}
+  <div class="box lesson"><b>Falta de memória:</b> se a bomba já passou de 10 s sem explodir, a chance de aguentar mais 5 s é <b>igual</b> à de uma bomba recém-armada: <span class="f">P(X &gt; s+t | X &gt; s) = P(X &gt; t)</span>. Esperar “porque já está na hora” não adianta.</div></div>`;
+  let t = 5;
+  const f = x => x < 0 ? 0 : Math.exp(-x/10)/10;
+  const plotExp = () => {
+    const cv = $('c2'), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = 230; if (!W) return; cv.width = W*dpr; cv.height = H*dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const X = x => 20+(W-34)*x/40, Y = y => 14+(H-44)*(1-y/.11);
+    c.strokeStyle = 'rgba(255,255,255,.08)'; for (let x = 0; x <= 40; x += 10) { c.beginPath(); c.moveTo(X(x), 8); c.lineTo(X(x), H-26); c.stroke(); }
+    const g = c.createLinearGradient(0, 0, 0, H); g.addColorStop(0, 'rgba(94,224,138,.6)'); g.addColorStop(1, 'rgba(94,224,138,.05)');
+    c.fillStyle = g; c.beginPath(); c.moveTo(X(t), Y(0)); for (let x = t; x <= 40; x += .4) c.lineTo(X(x), Y(f(x))); c.lineTo(X(40), Y(0)); c.fill();
+    c.save(); c.shadowColor = '#f5c542'; c.shadowBlur = 10; c.beginPath(); c.strokeStyle = '#ffe27a'; c.lineWidth = 3; for (let x = 0; x <= 40; x += .4) x ? c.lineTo(X(x), Y(f(x))) : c.moveTo(X(x), Y(f(x))); c.stroke(); c.restore();
+    c.setLineDash([5, 4]); c.strokeStyle = '#ff6b6b'; c.beginPath(); c.moveTo(X(t), 8); c.lineTo(X(t), H-26); c.stroke(); c.setLineDash([]);
+    c.fillStyle = '#9fc4b2'; c.font = '11px system-ui'; c.textAlign = 'center'; for (let x = 0; x <= 40; x += 10) c.fillText(x+' s', X(x), H-8);
+    c.fillStyle = '#ff9a9a'; c.fillText('saque', X(t), 22);
+  };
+  const info = () => {
+    t = +$('t2').value; $('vt').textContent = nf(t, 1);
+    const p = Math.exp(-t/10), mult = 1+.1*t, ev = p*.1*t-(1-p);
+    $('i2').innerHTML = `P(sobreviver até ${nf(t, 1)} s) = e<sup>−${nf(t, 1)}/10</sup> = <b>${pc(p)}</b> · Prêmio: <b>${nf(mult)}×</b> · Valor esperado por ficha: <span class="no">${nf(ev, 3)}</span>`;
+    plotExp();
+  };
+  upd = info; $('t2').oninput = info; info();
+  $('sp2').onclick = () => {
+    busy = true; ui(); const X = E(.1), stopAt = Math.min(X, t); let ts = 0; $('r2').innerHTML = ''; $('bm').textContent = '💣'; $('bm').classList.add('tick'); $('fb').style.width = '0';
+    timer = setInterval(() => {
+      ts = Math.min(ts+.25, stopAt); $('tm').textContent = '⏱ '+nf(ts, 1)+' s'; $('fb').style.width = (ts/t*100)+'%';
+      if (ts < stopAt) return; stopT(); $('bm').classList.remove('tick');
+      const win = X > t, prof = win ? bet*.1*t : -bet;
+      $('tm').textContent = win ? '✅ SACADO EM '+nf(t, 1)+' s' : '💥 BOOM EM '+nf(X, 1)+' s';
+      $('bm').textContent = win ? '💰' : '💥'; if (!RM) $('bm').animate([{ transform: 'scale(.6)' }, { transform: 'scale(1.5)' }, { transform: 'scale(1)' }], { duration: 450, easing: 'cubic-bezier(.3,1.6,.5,1)' });
+      settle(prof); $('r2').innerHTML = outcome(win, prof, `a bomba explodiria em ${nf(X, 1)} s`); ui();
+    }, 30);
+  };
+  $('sim').onclick = () => runSim(() => E(.1) > t ? .1*t : -1, Math.exp(-t/10)*.1*t-(1-Math.exp(-t/10)));
+}
+
+// ---------- JOGO 3: PLINKO (NORMAL / TCL) ----------
+function G3() {
+  const ROWS = 12, C = (n, k) => { let r = 1; for (let i = 1; i <= k; i++) r = r*(n-k+i)/i; return r; };
+  const pk = Array.from({ length: ROWS+1 }, (_, k) => C(ROWS, k)/2**ROWS), counts = new Array(ROWS+1).fill(0);
+  let w = 2;
+  $('game').innerHTML = `<div class="panel"><h2>🔴 Plinko de Gauss <small>Normal e TCL</small></h2>
+  <p class="story">A bolinha cai por 12 pinos e a cada um vai para a esquerda ou direita ao acaso. O destino final é a <b>soma de 12 pequenos desvios</b>, e pelo <b>Teorema Central do Limite</b> isso forma uma <b>curva de sino</b>: média 6 e desvio <span class="f">√(12·¼) = √3 ≈ 1,73</span>. Aposte numa <b>zona central</b>.</p>
+  <canvas id="c3" style="height:440px"></canvas>
+  <label>Zona central: 6 ± <b id="vz"></b> casas<input type="range" id="z3" min="0" max="6" value="2"></label>
+  <div class="box" id="i3"></div>
+  <div class="row"><button class="b play" id="sp3">⚪ SOLTAR 1 BOLA</button><button class="b alt play" id="sp30">×50 bolas (sem apostar)</button></div><div id="r3"></div>
+  ${simBlock()}</div>`;
+  const pz = () => { let p = 0; for (let k = 0; k <= ROWS; k++) if (Math.abs(k-6) <= w) p += pk[k]; return p; };
+  const dxf = () => Math.min(34, ($('c3').clientWidth-30)/(ROWS+1));
+  const draw = (ball, trail = []) => {
+    const cv = $('c3'), dpr = devicePixelRatio || 1, W = cv.clientWidth, H = 440; if (!W) return; cv.width = W*dpr; cv.height = H*dpr;
+    const c = cv.getContext('2d'); c.setTransform(dpr, 0, 0, dpr, 0, 0);
+    const dx = dxf(), cx = W/2, top = 24, dy = 19, base = top+ROWS*dy+14, xs = k => cx+(k-6)*dx, p = pz(), odds = .95/p;
+    for (let k = 0; k <= ROWS; k++) if (Math.abs(k-6) <= w) { const g = c.createLinearGradient(0, base, 0, base+160); g.addColorStop(0, 'rgba(94,224,138,.3)'); g.addColorStop(1, 'rgba(94,224,138,.04)'); c.fillStyle = g; c.fillRect(xs(k)-dx/2, base-6, dx, 168); }
+    c.strokeStyle = 'rgba(245,197,66,.25)'; for (let k = 0; k <= ROWS+1; k++) { c.beginPath(); c.moveTo(xs(k-.5)+0, base-6); c.lineTo(xs(k-.5), base+162); c.stroke(); }
+    c.save(); c.fillStyle = '#ffe9a8'; c.shadowColor = '#f5c542'; c.shadowBlur = 7;
+    for (let r = 0; r < ROWS; r++) for (let j = 0; j <= r; j++) { c.beginPath(); c.arc(cx+(j-r/2)*dx, top+r*dy, 2.8, 0, 7); c.fill(); } c.restore();
+    const tot = counts.reduce((a, b) => a+b, 0), mxc = Math.max(1, ...counts);
+    counts.forEach((n, k) => { const h = n/mxc*125, g = c.createLinearGradient(0, base+135-h, 0, base+135); g.addColorStop(0, '#ffe27a'); g.addColorStop(1, '#b8860b'); c.fillStyle = g; c.fillRect(xs(k)-dx/2+2, base+135-h, dx-4, h); });
+    c.textAlign = 'center'; c.font = '10px system-ui';
+    for (let k = 0; k <= ROWS; k++) { c.fillStyle = '#9fc4b2'; c.fillText(k, xs(k), base+150); if (Math.abs(k-6) <= w) { c.fillStyle = '#5ee08a'; c.fillText(nf(odds, 1)+'×', xs(k), base+163); } }
+    if (tot > 0) { c.save(); c.shadowColor = '#7cc4ff'; c.shadowBlur = 8; c.beginPath(); c.strokeStyle = '#7cc4ff'; c.lineWidth = 2.5; const ph = k => Math.exp(-((k-6)**2)/6)/Math.sqrt(2*Math.PI*3);
+      for (let k = 0; k <= ROWS; k += .1) { const y = base+135-(ph(k)*tot/mxc)*125; k ? c.lineTo(xs(k), y) : c.moveTo(xs(k), y); } c.stroke(); c.restore(); }
+    trail.forEach((q, i) => { c.beginPath(); c.fillStyle = `rgba(255,120,120,${(i+1)/trail.length*.35})`; c.arc(cx+q.x*dx/2, q.y, 6*(i+1)/trail.length, 0, 7); c.fill(); });
+    if (ball) { c.save(); c.shadowColor = '#ff4d4d'; c.shadowBlur = 14; const g = c.createRadialGradient(cx+ball.x*dx/2-2, ball.y-2, 1, cx+ball.x*dx/2, ball.y, 8); g.addColorStop(0, '#ffb3b3'); g.addColorStop(1, '#d11a2a'); c.beginPath(); c.fillStyle = g; c.arc(cx+ball.x*dx/2, ball.y, 8, 0, 7); c.fill(); c.restore(); }
+  };
+  const info = () => {
+    w = +$('z3').value; $('vz').textContent = w; const p = pz(), odds = .95/p;
+    $('i3').innerHTML = `P(cair na zona) = <b>${pc(p)}</b> (soma das barras da zona verde) · Prêmio: <b>${nf(odds)}×</b> · Valor esperado por ficha: <span class="no">−0,05</span>`;
+    draw(null);
+  };
+  upd = info; $('z3').oninput = info; info();
+  const drop = () => { let k = 0; for (let i = 0; i < ROWS; i++) k += Math.random() < .5; return k; };
+  $('sp3').onclick = () => {
+    busy = true; ui(); $('r3').innerHTML = ''; const path = Array.from({ length: ROWS }, () => Math.random() < .5 ? 1 : -1), SUB = RM ? 1 : 5, trail = []; let f = 0, pos = 0;
+    timer = setInterval(() => {
+      const row = Math.floor(f/SUB), fr = (f%SUB+1)/SUB; f++;
+      if (row < ROWS) { const x = pos+path[row]*fr, y = 24+(row+fr)*19-Math.sin(fr*Math.PI)*7; trail.push({ x, y }); if (trail.length > 9) trail.shift(); draw({ x, y }, trail); if (fr === 1) pos += path[row]; return; }
+      stopT(); const k = path.filter(v => v > 0).length; counts[k]++; draw(null);
+      const p = pz(), win = Math.abs(k-6) <= w, prof = win ? bet*(.95/p-1) : -bet; settle(prof);
+      $('r3').innerHTML = outcome(win, prof, `bola na casa ${k}`); ui();
+    }, 16);
+  };
+  $('sp30').onclick = () => { for (let i = 0; i < 50; i++) counts[drop()]++; draw(null); };
+  $('sim').onclick = () => runSim(() => Math.abs(drop()-6) <= w ? .95/pz()-1 : -1, -.05);
+}
+
+const GAMES = [['🎡 Roleta', G1, 'Uniforme'], ['💣 Bomba', G2, 'Exponencial'], ['🔴 Plinko', G3, 'Normal / TCL']];
+$('nav').innerHTML = GAMES.map((g, i) => `<button data-i="${i}">${g[0]} <small style="opacity:.7">· ${g[2]}</small></button>`).join('');
+$('nav').onclick = e => { const b = e.target.closest('button'); if (b) go(+b.dataset.i); };
+function go(i) { stopT(); cur = i; upd = null; document.querySelectorAll('nav button').forEach((b, j) => b.classList.toggle('on', j === i)); GAMES[i][1](); ui(); }
+addEventListener('resize', () => { ui(); upd && upd(); });
+go(0);
+</script>
+</body>
+</html>
